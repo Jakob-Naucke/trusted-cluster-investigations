@@ -74,3 +74,9 @@ kubevirt:
     {{cosa_function}}
     cd cache
     cosa osbuild kubevirt
+
+azure:
+    #!/usr/bin/env bash
+    {{cosa_function}}
+    cd cache
+    cosa osbuild azure
