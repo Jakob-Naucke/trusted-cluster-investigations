@@ -3,6 +3,7 @@ name: "Build and push Ignition container image"
 env:
   NAME: "ignition"
   REGISTRY: "quay.io/trusted-execution-clusters"
+  COMMIT: "5a45ee84"
 
 on:
   push:
@@ -44,18 +45,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest commit from ignition repo
-        id: get-upstream-commit
-        run: |
-          UPSTREAM_SHA=$(git ls-remote https://github.com/coreos/ignition.git HEAD | cut -f1)
-          SHORT_SHA=$(echo $UPSTREAM_SHA | cut -c1-7)
-          echo "sha=${UPSTREAM_SHA}" >> $GITHUB_OUTPUT
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-
       - name: Generate image tag
         id: generate-tag
         run: |
-          TAG="${{ matrix.tag }}-${{ steps.get-upstream-commit.outputs.short_sha }}"
+          TAG="${{ matrix.tag }}-${{ env.COMMIT }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Build ignition image (${{ matrix.tag }})
@@ -70,7 +63,7 @@ jobs:
           oci: true
           build-args: |
             BASE=${{ matrix.base }}
-            COMMIT=${{ steps.get-upstream-commit.outputs.sha }}
+            COMMIT=${{ env.COMMIT }}
 
       - name: Push ignition image (${{ matrix.tag }}) to registry
         uses: redhat-actions/push-to-registry@v2

@@ -3,6 +3,7 @@ name: "Build and push trustee-attester container image"
 env:
   NAME: "trustee-attester"
   REGISTRY: "quay.io/trusted-execution-clusters"
+  COMMIT: "v0.17.0"
 
 on:
   push:
@@ -56,18 +57,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get latest commit from guest-components repo
-        id: get-upstream-commit
-        run: |
-          UPSTREAM_SHA=$(git ls-remote https://github.com/confidential-containers/guest-components.git HEAD | cut -f1)
-          SHORT_SHA=$(echo $UPSTREAM_SHA | cut -c1-7)
-          echo "sha=${UPSTREAM_SHA}" >> $GITHUB_OUTPUT
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-
       - name: Generate image tag
         id: generate-tag
         run: |
-          TAG="${{ matrix.tag }}-${{ matrix.variant }}-${{ steps.get-upstream-commit.outputs.short_sha }}"
+          TAG="${{ matrix.tag }}-${{ matrix.variant }}-${{ env.COMMIT }}"
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
       - name: Build trustee-attester image (${{ matrix.tag }}-${{ matrix.variant }})
@@ -82,7 +75,7 @@ jobs:
           oci: true
           build-args: |
             BASE=${{ matrix.base }}
-            COMMIT=${{ steps.get-upstream-commit.outputs.sha }}
+            COMMIT=${{ env.COMMIT }}
             ATTESTERS=${{ matrix.attesters }}
 
       - name: Push trustee-attester image (${{ matrix.tag }}-${{ matrix.variant }}) to registry
